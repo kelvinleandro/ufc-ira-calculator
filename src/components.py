@@ -61,24 +61,28 @@ def render_header():
         st.markdown(
             """
             <style>
-                .custom-logo {
-                    color: #fff !important;
+                div.st-key-logo_button button[kind="tertiary"] p {
+                    font-size: 2.25rem;
+                    font-weight: bold;
+                    padding:0;
+                    margin:0;
                     transition: color 0.3s ease;
                 }
 
-                .custom-logo-link:hover .custom-logo {
-                    color: #26c2ed !important;
+                div.st-key-logo_button button[kind="tertiary"] p:hover {
+                    color: #26c2ed;
                 }
             </style>
-            <a href="/" target="_self" class="custom-logo-link" style="text-decoration: none;">
-                <h2 class="custom-logo">Calculadora de IRA</h2>
-            </a>
             """,
             unsafe_allow_html=True,
         )
+        if st.button("Calculadora de IRA", type="tertiary", key="logo_button"):
+            st.switch_page("app.py")
 
     with col_about:
-        st.page_link("pages/1_About.py", label="Sobre o IRA", icon="❓")
+        if st.button("Sobre o IRA", icon="❓", type="secondary", key="about_button"):
+            st.switch_page("pages/1_About.py")
+        # st.page_link("pages/1_About.py", label="Sobre o IRA", icon="❓")
 
     with col_modal:
         if st.button("Meu curso não está na lista"):
