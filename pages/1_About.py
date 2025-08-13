@@ -1,7 +1,14 @@
 import streamlit as st
-from src.components import render_header
+from src.components import render_header, apply_global_styles
 
-st.set_page_config(page_title="Sobre o IRA", layout="wide", page_icon="📊")
+st.set_page_config(
+    page_title="Sobre o IRA",
+    layout="wide",
+    page_icon="📊",
+    initial_sidebar_state="collapsed",
+)
+
+# apply_global_styles()
 
 render_header()
 

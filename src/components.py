@@ -83,3 +83,24 @@ def render_header():
     with col_modal:
         if st.button("Meu curso não está na lista"):
             show_form()
+
+
+def apply_global_styles():
+    st.markdown(
+        """
+        <style>
+        [data-testid="stSidebar"] {
+            display: none
+        }
+
+        [data-testid="stExpandSidebarButton"] {
+            display: none
+        }
+
+        [data-testid="collapsedControl"] {
+            display: none
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )

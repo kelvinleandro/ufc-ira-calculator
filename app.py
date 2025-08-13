@@ -12,9 +12,17 @@ from src.calculations import (
     prepare_hourly_load_data,
     prepare_grade_distribution_data,
 )
-from src.components import render_header
+from src.components import render_header, apply_global_styles
 
-st.set_page_config(layout="wide", page_title="Calculadora de IRA - UFC", page_icon="📊")
+
+st.set_page_config(
+    layout="wide",
+    page_title="Calculadora de IRA - UFC",
+    page_icon="📊",
+    initial_sidebar_state="collapsed",
+)
+
+# apply_global_styles()
 
 render_header()
 
