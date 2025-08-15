@@ -2,6 +2,8 @@
 
 Uma aplicação web interativa construída com Streamlit para analisar históricos acadêmicos da Universidade Federal do Ceará (UFC), extraídos do sistema SIGAA. A ferramenta calcula automaticamente o Índice de Rendimento Acadêmico (IRA) Individual e Geral, e apresenta um dashboard com métricas e visualizações sobre o desempenho do aluno.
 
+![preview](./assets/preview.png)
+
 ## ✨ Funcionalidades
 
 - **Upload de Histórico**: Faça o upload do seu histórico escolar em formato PDF diretamente na aplicação.
