@@ -154,7 +154,6 @@ with col_results:
                             "period": "Semestre",
                         },
                         text_auto=True,
-                        title="Carga Horária Cursada por Semestre",
                     )
 
                     fig_hours.update_xaxes(type="category")
