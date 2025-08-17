@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from pathlib import Path
 
 from src.database import load_courses
@@ -9,6 +10,7 @@ from src.calculations import (
     calculate_individual_ira,
     calculate_general_ira,
     calculate_semester_ira,
+    calculate_mean_grade_per_semester,
     prepare_hourly_load_data,
     prepare_grade_distribution_data,
 )
@@ -41,7 +43,7 @@ with col_controls:
     #     ("Ciência da Computação", 7.2123, 1.8543),
     # ]
 
-    course_options = [course[0] for course in course_list_from_db] + ["Customizado"]
+    course_options = [course[0] for course in course_list_from_db] + ["CUSTOMIZADO"]
 
     selected_course_name = st.selectbox(
         "Selecione seu curso para o cálculo do IRA Geral:",
@@ -51,7 +53,7 @@ with col_controls:
     course_avg = 0.0
     course_dev = 0.0
 
-    if selected_course_name == "Customizado":
+    if selected_course_name == "CUSTOMIZADO":
         st.write("Insira os valores para o cálculo:")
         course_avg = st.number_input(
             "Média do Curso (IRAm)", min_value=0.0, max_value=10.0, format="%.4f"
@@ -87,6 +89,7 @@ with col_results:
             final_ira = calculate_individual_ira(disciplines)
             final_general_ira = calculate_general_ira(final_ira, course_avg, course_dev)
             semester_iras = calculate_semester_ira(disciplines)
+            semester_mean = calculate_mean_grade_per_semester(disciplines)
 
             required_hours = credit_summary.get("required_hours", 0)
             completed_hours = credit_summary.get("completed_hours", 0)
@@ -104,24 +107,45 @@ with col_results:
             )
             df_ira_evolution = df_ira_evolution.sort_values(by="Semestre")
             df_ira_evolution["Semestre"] = df_ira_evolution["Semestre"].astype(str)
-            fig_evolution = px.line(
-                df_ira_evolution,
-                x="Semestre",
-                y="IRA Individual",
-                markers=True,
-                text=df_ira_evolution["IRA Individual"].apply(lambda x: f"{x:.3f}"),
-                title="Evolução do IRA Individual por Semestre",
+
+            fig_combined = go.Figure()
+
+            fig_combined.add_trace(
+                go.Scatter(
+                    x=df_ira_evolution["Semestre"],
+                    y=df_ira_evolution["IRA Individual"],
+                    mode="lines+markers+text",
+                    name="IRA Individual",
+                    text=[f"{x:.3f}" for x in df_ira_evolution["IRA Individual"]],
+                    textposition="top center",
+                )
             )
-            fig_evolution.update_xaxes(type="category")
-            fig_evolution.update_traces(textposition="top center")
-            st.plotly_chart(fig_evolution, use_container_width=True)
+
+            fig_combined.add_trace(
+                go.Scatter(
+                    x=semester_mean.index.astype(str),
+                    y=semester_mean.values,
+                    mode="lines+markers+text",
+                    name="Média do Semestre",
+                    text=[f"{x:.3f}" for x in semester_mean.values],
+                    textposition="top center",
+                )
+            )
+
+            fig_combined.update_layout(
+                xaxis=dict(type="category", title="Semestre"),
+                yaxis=dict(title="Nota"),
+                title="Evolução Semestral do Estudante",
+                legend_title="Legenda",
+            )
+
+            st.plotly_chart(fig_combined, use_container_width=True)
 
             st.divider()
             st.subheader("Análises Detalhadas")
             col_graph1, col_graph2 = st.columns(2)
 
             with col_graph1:
-                st.markdown("##### Distribuição de Notas")
                 grade_data = prepare_grade_distribution_data(disciplines)
                 if not grade_data.empty:
                     fig_grades = px.bar(
@@ -133,13 +157,13 @@ with col_results:
                             "Grade Range": "Faixa de Nota",
                         },
                         text_auto=True,
+                        title="Distribuição de Notas",
                     )
                     st.plotly_chart(fig_grades, use_container_width=True)
                 else:
                     st.info("Não há notas para exibir.")
 
             with col_graph2:
-                st.markdown("##### Carga Horária por Semestre")
                 hourly_data = prepare_hourly_load_data(disciplines)
                 if not hourly_data.empty:
                     hourly_data = hourly_data.sort_index()
@@ -154,6 +178,7 @@ with col_results:
                             "period": "Semestre",
                         },
                         text_auto=True,
+                        title="Carga Horária por Semestre",
                     )
 
                     fig_hours.update_xaxes(type="category")

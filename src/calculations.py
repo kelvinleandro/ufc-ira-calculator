@@ -110,6 +110,27 @@ def calculate_semester_ira(disciplines: List[Dict]) -> Dict[str, float]:
     return semester_iras
 
 
+def calculate_mean_grade_per_semester(disciplines: List[Dict]) -> pd.Series:
+    """
+    Calculates the mean grade for each semester.
+
+    Args:
+        disciplines (List[Dict]): A list of course dictionaries. Each dictionary
+            must contain at least a 'period' (e.g., '2022.1') and a 'grade' key.
+
+    Returns:
+        pd.Series: A Pandas Series where the index contains the sorted semester
+            periods (str) and the values are the corresponding mean grades (float).
+            Returns an empty Series if the input list is empty.
+    """
+    if not disciplines:
+        return pd.Series(dtype=float)
+
+    df = pd.DataFrame(disciplines)
+    mean_grades_per_semester = df.groupby("period")["grade"].mean().sort_index()
+    return mean_grades_per_semester
+
+
 def prepare_hourly_load_data(disciplines: List[Dict]) -> pd.Series:
     """
     Groups disciplines by period and sums their credit hours for plotting.
