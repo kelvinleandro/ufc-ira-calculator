@@ -49,16 +49,20 @@ ufc-ira-calculator/
 
 ## 🚀 Como Executar Localmente
 
-### 1. Configuração do Ambiente
+Você pode executar esta aplicação de duas maneiras: usando um ambiente virtual Python diretamente na sua máquina ou usando Docker para um ambiente containerizado e isolado.
 
-#### a. Clone o repositório:
+### Opção 1: Executando com Ambiente Virtual Python (Tradicional)
+
+#### 1. Configuração do ambiente
+
+**a. Clone o repositório:**
 
 ```sh
 git clone https://github.com/kelvinleandro/ufc-ira-calculator.git
 cd ufc-ira-calculator
 ```
 
-#### b. Crie e ative um ambiente virtual:
+**b. Crie e ative um ambiente virtual:**
 
 ```sh
 # Criar o ambiente
@@ -71,13 +75,13 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-#### c. Instale as dependências:
+**c. Instale as dependências:**
 
 ```sh
 pip install -r requirements.txt
 ```
 
-#### d. Configure os segredos (credenciais):
+**d. Configure os segredos (credenciais)**
 
 Crie uma pasta `.streamlit` na raiz do projeto e, dentro dela, um arquivo `secrets.toml`. Adicione as suas credenciais do PostgreSQL:
 
@@ -91,7 +95,7 @@ user = "seu_usuario"
 password = "sua_senha"
 ```
 
-### 2. Executando a Aplicação
+#### 2. Executando a Aplicação
 
 Com o ambiente virtual ativado, execute o seguinte comando no terminal:
 
@@ -100,3 +104,37 @@ streamlit run app.py
 ```
 
 A aplicação será aberta automaticamente no seu navegador padrão.
+
+### Opção 2: Executando com Docker
+
+#### 1. Configuração Inicial
+
+Siga os passos **1.a** e **1.d** da "Opção 1" para clonar o repositório e criar o seu arquivo `secrets.toml`.
+
+#### 2. Construindo a Imagem Docker
+
+No terminal, na pasta raiz do projeto, execute o comando para construir a imagem:
+
+```bash
+docker build -t ira-dashboard .
+```
+
+- `-t ira-dashboard` dá um nome (tag) à sua imagem para que seja fácil de encontrá-la.
+- `.` indica que o Docker deve procurar o `Dockerfile` no diretório atual.
+
+#### 3. Executando o Container
+
+Após a imagem ser construída, execute o container com o comando abaixo. Ele irá "montar" o seu arquivo `secrets.toml` local dentro do container.
+
+```bash
+docker run --rm -p 8501:8501 \
+   -v $(pwd)/.streamlit/secrets.toml:/app/.streamlit/secrets.toml \
+   --name ira-app \
+   ira-dashboard
+```
+
+- `-p 8501:8501`: Mapeia a porta 8501 do container para a porta 8501 da sua máquina.
+- `-v ...`: Monta o seu arquivo `secrets.toml` local dentro do container, permitindo que a aplicação se conecte ao banco de dados.
+- `--name ira-app`: Dá um nome fácil de lembrar ao seu container em execução.
+
+A aplicação estará disponível no seu navegador em **`http://localhost:8501`**.
