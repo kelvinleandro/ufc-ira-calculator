@@ -133,3 +133,62 @@ def extract_credit_hour_summary(pdf_path: Path) -> Dict[str, int]:
         print(f"Could not parse credit hour summary: {e}")
 
     return {"required_hours": 0, "completed_hours": 0}
+
+
+def extract_pending_courses(pdf_path: Path) -> List[Dict]:
+    """
+    Parses the PDF transcript to find and extract the list of pending mandatory courses.
+
+    This function searches for the specific section and then uses regular expressions
+    to parse each subsequent line, extracting the course code, name, and
+    credit hours for each pending course.
+
+    Args:
+        pdf_path: The Path object for the PDF file.
+
+    Returns:
+        A list of dictionaries, where each dictionary represents a pending course
+        with 'code', 'name', and 'credit_hours'. Returns an empty list if the
+        section is not found or an error occurs.
+    """
+    pending_courses = []
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            full_text = "".join([page.extract_text() or "" for page in pdf.pages])
+
+        # 1. Isolate the relevant section of the text
+        # Find the start of the pending courses section
+        start_marker = "Componentes Curriculares Obrigatórios Pendentes"
+        start_index = full_text.find(start_marker)
+
+        if start_index == -1:
+            return []
+
+        # The relevant text is everything after the marker
+        relevant_text = full_text[start_index + len(start_marker) :]
+        end_marker = "Equivalências:"
+        end_index = relevant_text.find(end_marker)
+        if end_index != -1:
+            relevant_text = relevant_text[:end_index]
+
+        # 2. Define the regex to find each course line
+        course_pattern = re.compile(r"([A-Z]{2,3}\d{4,})\s+(.*?)\s+(\d+)\s*h")
+
+        # 3. Find all matches in the isolated text
+        matches = course_pattern.findall(relevant_text)
+
+        # 4. Process each match and create a dictionary
+        for match in matches:
+            pending_courses.append(
+                {
+                    "code": match[0].strip(),
+                    "name": match[1].strip(),
+                    "credit_hours": int(match[2]),
+                }
+            )
+
+    except Exception as e:
+        print(f"Could not parse pending courses: {e}")
+
+    pending_courses.sort(key=lambda x: x["name"])
+    return pending_courses

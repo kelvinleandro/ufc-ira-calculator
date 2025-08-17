@@ -5,7 +5,11 @@ import plotly.graph_objects as go
 from pathlib import Path
 
 from src.database import load_courses
-from src.pdf_parser import extract_disciplines, extract_credit_hour_summary
+from src.pdf_parser import (
+    extract_disciplines,
+    extract_credit_hour_summary,
+    extract_pending_courses,
+)
 from src.calculations import (
     calculate_individual_ira,
     calculate_general_ira,
@@ -80,6 +84,7 @@ with col_results:
         with st.spinner("Analisando o histórico..."):
             disciplines = extract_disciplines(pdf_path)
             credit_summary = extract_credit_hour_summary(pdf_path)
+            pending_courses = extract_pending_courses(pdf_path)
 
         if not disciplines:
             st.error(
@@ -185,3 +190,18 @@ with col_results:
                     st.plotly_chart(fig_hours, use_container_width=True)
                 else:
                     st.info("Não há dados de carga horária para exibir.")
+
+            with st.expander("Ver disciplinas obrigatórias pendentes"):
+                if pending_courses:
+                    df_pending = pd.DataFrame(pending_courses)
+                    df_pending.columns = [
+                        "Código",
+                        "Componente Curricular",
+                        "Carga Horária (h)",
+                    ]
+
+                    st.dataframe(data=df_pending, hide_index=True)
+                else:
+                    st.success(
+                        "Parabéns! Nenhuma disciplina obrigatória pendente foi encontrada."
+                    )
