@@ -104,11 +104,13 @@ with col_results:
             progress_percent = (
                 (completed_hours / required_hours) if required_hours > 0 else 0.0
             )
+            optional_pending_hours = credit_summary.get("optional_pending_hours", 0)
 
-            card1, card2, card3 = st.columns(3)
+            card1, card2, card3, card4 = st.columns(4)
             card1.metric("IRA Individual", f"{final_ira:.4f}")
             card2.metric("IRA Geral", f"{final_general_ira:.3f}")
             card3.metric("Progresso do Curso", f"{progress_percent:.1%}")
+            card4.metric("Optativas Restantes", f"{optional_pending_hours:.0f} h")
 
             tab_plot, tab_sheet = st.tabs(
                 [

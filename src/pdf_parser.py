@@ -102,37 +102,50 @@ def extract_disciplines(pdf_path: Path) -> List[Dict]:
 
 def extract_credit_hour_summary(pdf_path: Path) -> Dict[str, int]:
     """
-    Parses the PDF to find the summary of total credit hours.
+    Parses the PDF to find the summary of total and optional credit hours.
 
-    This function looks for the line starting with "Carga Horária Total"
-    which typically appears after the "Legenda:" section in the transcript,
-    and extracts the 'required' and 'completed' hours.
+    This function looks for the lines starting with "Carga Horária Total" and
+    "Carga Horária Optativa" and extracts the 'required', 'completed', and
+    'pending' hours for each category.
 
     Args:
         pdf_path: The Path object for the PDF file.
 
     Returns:
-        A dictionary with 'required_hours' and 'completed_hours'.
-        Returns a dictionary with 0s if the data cannot be found or an error occurs.
+        A dictionary containing the summary of credit hours. Returns a dictionary
+        with default zero values if data cannot be found or an error occurs.
     """
+    summary = {
+        "required_hours": 0,
+        "completed_hours": 0,
+        "optional_required_hours": 0,
+        "optional_completed_hours": 0,
+        "optional_pending_hours": 0,
+    }
+
     try:
         with pdfplumber.open(pdf_path) as pdf:
             full_text = "".join([page.extract_text() or "" for page in pdf.pages])
 
-        # Regex to find the "Carga Horária Total" line and capture the first two numbers
-        pattern = re.compile(r"Carga Horária Total\s+(\d+)\s+(\d+)")
-        match = pattern.search(full_text)
+        total_pattern = re.compile(r"Carga Horária Total\s+(\d+)\s+(\d+)")
+        total_match = total_pattern.search(full_text)
+        if total_match:
+            summary["required_hours"] = int(total_match.group(1))
+            summary["completed_hours"] = int(total_match.group(2))
 
-        if match:
-            required = int(match.group(1))
-            completed = int(match.group(2))
-
-            return {"required_hours": required, "completed_hours": completed}
+        optional_pattern = re.compile(
+            r"Carga Horária Optativa\s+(\d+)\s+(\d+)\s+\d+\s+(\d+)"
+        )
+        optional_match = optional_pattern.search(full_text)
+        if optional_match:
+            summary["optional_required_hours"] = int(optional_match.group(1))
+            summary["optional_completed_hours"] = int(optional_match.group(2))
+            summary["optional_pending_hours"] = int(optional_match.group(3))
 
     except Exception as e:
         print(f"Could not parse credit hour summary: {e}")
 
-    return {"required_hours": 0, "completed_hours": 0}
+    return summary
 
 
 def extract_pending_courses(pdf_path: Path) -> List[Dict]:
