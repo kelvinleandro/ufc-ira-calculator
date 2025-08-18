@@ -18,7 +18,7 @@ from src.calculations import (
     prepare_hourly_load_data,
     prepare_grade_distribution_data,
 )
-from src.components import render_header, apply_global_styles
+from src.components import render_header, render_ira_simulator
 
 
 st.set_page_config(
@@ -27,8 +27,6 @@ st.set_page_config(
     page_icon="📊",
     initial_sidebar_state="collapsed",
 )
-
-# apply_global_styles()
 
 render_header()
 
@@ -72,7 +70,9 @@ with col_controls:
                 break
 
 with col_results:
-    st.subheader("Seus Resultados")
+    col_header, col_simulator = st.columns([3, 1], gap="large")
+    col_header.subheader("Seus Resultados")
+
     if uploaded_file is None:
         st.info("Aguardando o upload do histórico para exibir a análise.")
     else:
@@ -91,6 +91,9 @@ with col_results:
                 "Nenhuma disciplina válida foi encontrada no histórico. Verifique o arquivo."
             )
         else:
+            with col_simulator:
+                render_ira_simulator(disciplines, course_avg, course_dev)
+
             final_ira = calculate_individual_ira(disciplines)
             final_general_ira = calculate_general_ira(final_ira, course_avg, course_dev)
             semester_iras = calculate_semester_ira(disciplines)
@@ -107,91 +110,100 @@ with col_results:
             card2.metric("IRA Geral", f"{final_general_ira:.3f}")
             card3.metric("Progresso do Curso", f"{progress_percent:.1%}")
 
-            df_ira_evolution = pd.DataFrame(
-                semester_iras.items(), columns=["Semestre", "IRA Individual"]
+            tab_plot, tab_sheet = st.tabs(
+                [
+                    ":blue[:material/bar_chart_4_bars:] Análise",
+                    ":green[:material/table:] Pendências",
+                ]
             )
-            df_ira_evolution = df_ira_evolution.sort_values(by="Semestre")
-            df_ira_evolution["Semestre"] = df_ira_evolution["Semestre"].astype(str)
 
-            fig_combined = go.Figure()
-
-            fig_combined.add_trace(
-                go.Scatter(
-                    x=df_ira_evolution["Semestre"],
-                    y=df_ira_evolution["IRA Individual"],
-                    mode="lines+markers+text",
-                    name="IRA Individual",
-                    text=[f"{x:.3f}" for x in df_ira_evolution["IRA Individual"]],
-                    textposition="top center",
+            with tab_plot:
+                df_ira_evolution = pd.DataFrame(
+                    semester_iras.items(), columns=["Semestre", "IRA Individual"]
                 )
-            )
+                df_ira_evolution = df_ira_evolution.sort_values(by="Semestre")
+                df_ira_evolution["Semestre"] = df_ira_evolution["Semestre"].astype(str)
 
-            fig_combined.add_trace(
-                go.Scatter(
-                    x=semester_mean.index.astype(str),
-                    y=semester_mean.values,
-                    mode="lines+markers+text",
-                    name="Média do Semestre",
-                    text=[f"{x:.3f}" for x in semester_mean.values],
-                    textposition="top center",
+                fig_combined = go.Figure()
+
+                fig_combined.add_trace(
+                    go.Scatter(
+                        x=df_ira_evolution["Semestre"],
+                        y=df_ira_evolution["IRA Individual"],
+                        mode="lines+markers+text",
+                        name="IRA Individual",
+                        text=[f"{x:.3f}" for x in df_ira_evolution["IRA Individual"]],
+                        textposition="top center",
+                    )
                 )
-            )
 
-            fig_combined.update_layout(
-                xaxis=dict(type="category", title="Semestre"),
-                yaxis=dict(title="Nota"),
-                title="Evolução Semestral do Estudante",
-                legend_title="Legenda",
-            )
-
-            st.plotly_chart(fig_combined, use_container_width=True)
-
-            st.divider()
-            st.subheader("Análises Detalhadas")
-            col_graph1, col_graph2 = st.columns(2)
-
-            with col_graph1:
-                grade_data = prepare_grade_distribution_data(disciplines)
-                if not grade_data.empty:
-                    fig_grades = px.bar(
-                        grade_data,
-                        x=grade_data.index,
-                        y=grade_data.values,
-                        labels={
-                            "y": "Quantidade de Disciplinas",
-                            "Grade Range": "Faixa de Nota",
-                        },
-                        text_auto=True,
-                        title="Distribuição de Notas",
+                fig_combined.add_trace(
+                    go.Scatter(
+                        x=semester_mean.index.astype(str),
+                        y=semester_mean.values,
+                        mode="lines+markers+text",
+                        name="Média do Semestre",
+                        text=[f"{x:.3f}" for x in semester_mean.values],
+                        textposition="top center",
                     )
-                    st.plotly_chart(fig_grades, use_container_width=True)
-                else:
-                    st.info("Não há notas para exibir.")
+                )
 
-            with col_graph2:
-                hourly_data = prepare_hourly_load_data(disciplines)
-                if not hourly_data.empty:
-                    hourly_data = hourly_data.sort_index()
-                    hourly_data.index = hourly_data.index.astype(str)
+                fig_combined.update_layout(
+                    xaxis=dict(type="category", title="Semestre"),
+                    yaxis=dict(title="Nota"),
+                    title="Evolução Semestral do Estudante",
+                    legend_title="Legenda",
+                )
 
-                    fig_hours = px.bar(
-                        hourly_data,
-                        x=hourly_data.index,
-                        y=hourly_data.values,
-                        labels={
-                            "y": "Carga Horária Total (h)",
-                            "period": "Semestre",
-                        },
-                        text_auto=True,
-                        title="Carga Horária por Semestre",
-                    )
+                st.plotly_chart(fig_combined, use_container_width=True)
 
-                    fig_hours.update_xaxes(type="category")
-                    st.plotly_chart(fig_hours, use_container_width=True)
-                else:
-                    st.info("Não há dados de carga horária para exibir.")
+                st.divider()
+                st.subheader("Análises Detalhadas")
+                col_graph1, col_graph2 = st.columns(2)
 
-            with st.expander("Ver disciplinas obrigatórias pendentes"):
+                with col_graph1:
+                    grade_data = prepare_grade_distribution_data(disciplines)
+                    if not grade_data.empty:
+                        fig_grades = px.bar(
+                            grade_data,
+                            x=grade_data.index,
+                            y=grade_data.values,
+                            labels={
+                                "y": "Quantidade de Disciplinas",
+                                "Grade Range": "Faixa de Nota",
+                            },
+                            text_auto=True,
+                            title="Distribuição de Notas",
+                        )
+                        st.plotly_chart(fig_grades, use_container_width=True)
+                    else:
+                        st.info("Não há notas para exibir.")
+
+                with col_graph2:
+                    hourly_data = prepare_hourly_load_data(disciplines)
+                    if not hourly_data.empty:
+                        hourly_data = hourly_data.sort_index()
+                        hourly_data.index = hourly_data.index.astype(str)
+
+                        fig_hours = px.bar(
+                            hourly_data,
+                            x=hourly_data.index,
+                            y=hourly_data.values,
+                            labels={
+                                "y": "Carga Horária Total (h)",
+                                "period": "Semestre",
+                            },
+                            text_auto=True,
+                            title="Carga Horária por Semestre",
+                        )
+
+                        fig_hours.update_xaxes(type="category")
+                        st.plotly_chart(fig_hours, use_container_width=True)
+                    else:
+                        st.info("Não há dados de carga horária para exibir.")
+
+            with tab_sheet:
+                st.subheader("Disciplinas Obrigatórias Pendentes")
                 if pending_courses:
                     df_pending = pd.DataFrame(pending_courses)
                     df_pending.columns = [
