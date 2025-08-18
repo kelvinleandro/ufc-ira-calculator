@@ -117,8 +117,6 @@ def apply_global_styles():
 def show_ira_simulator_dialog(
     current_disciplines: List[Dict], course_avg: float, course_dev: float
 ):
-    st.markdown("## Simulador de IRA")
-
     st.info(
         "Adicione as disciplinas futuras, o período em que pretende cursá-las e as notas que espera obter."
     )
