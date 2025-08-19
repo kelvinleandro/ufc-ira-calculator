@@ -19,12 +19,11 @@ from src.calculations import (
     prepare_grade_distribution_data,
 )
 from src.components import render_header, render_ira_simulator
+from src.config import page_config
 
-
-st.set_page_config(
+page_config(
     layout="wide",
     page_title="Calculadora de IRA - UFC",
-    page_icon="📊",
     initial_sidebar_state="collapsed",
 )
 
