@@ -34,7 +34,7 @@ if __name__ == "__main__":
                 )
 
                 conn.commit()
-                logging.info(f"Formulário '{form_id[:6]}...' resolvido com sucesso.")
+                logging.info(f"Sugestão do curso '{nome_curso}' resolvida com sucesso.")
             else:
                 logging.info(
                     f"Formulario '{form_id[:6]}...' não encontrado ou já resolvido."
