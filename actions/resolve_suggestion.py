@@ -34,9 +34,11 @@ if __name__ == "__main__":
                 )
 
                 conn.commit()
-                logging.info("Formulário resolvido com sucesso.")
+                logging.info(f"Formulário '{form_id[:6]}...' resolvido com sucesso.")
             else:
-                logging.info(f"Formulario {form_id} não encontrado ou já resolvido.")
+                logging.info(
+                    f"Formulario '{form_id[:6]}...' não encontrado ou já resolvido."
+                )
     except Exception as e:
         logging.error(e)
         conn.rollback()
