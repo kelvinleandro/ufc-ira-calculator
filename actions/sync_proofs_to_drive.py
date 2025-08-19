@@ -7,7 +7,7 @@ import json
 from dotenv import load_dotenv
 
 from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build, Resource
 from googleapiclient.http import MediaIoBaseUpload
 
 from utils import get_connection
@@ -21,7 +21,7 @@ load_dotenv()
 GDRIVE_SCOPES = ["https://www.googleapis.com/auth/drive"]
 
 
-def get_gdrive_service():
+def get_gdrive_service() -> Resource:
     """
     Authenticates with the Google Drive API using OAuth 2.0 user credentials.
     """
@@ -44,7 +44,7 @@ def get_gdrive_service():
         raise
 
 
-def list_existing_file_ids(service, folder_id: str) -> set:
+def list_existing_file_ids(service: Resource, folder_id: str) -> set:
     """Lists the file names (without extension) in a folder on Google Drive."""
     existing_ids = set()
     page_token = None
@@ -92,7 +92,7 @@ def get_unresolved_forms(conn: psycopg2.extensions.connection) -> list:
 
 
 def upload_image_to_drive(
-    service, folder_id: str, form_id: str, base64_data: str
+    service: Resource, folder_id: str, form_id: str, base64_data: str
 ) -> bool:
     """Uploads a decoded image to Google Drive."""
     try:
