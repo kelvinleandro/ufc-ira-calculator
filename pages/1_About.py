@@ -1,5 +1,5 @@
 import streamlit as st
-from src.components import render_header, apply_global_styles
+from src.components import render_header
 from src.config import page_config
 
 page_config(
@@ -7,8 +7,6 @@ page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
-
-# apply_global_styles()
 
 render_header()
 

@@ -33,17 +33,22 @@ ufc-ira-calculator/
 ├── .streamlit/
 │   ├── config.toml         # Configurações de tema e UI
 │   └── secrets.toml        # Credenciais do banco de dados (local)
+├── assets/                 # Imagens estáticas como logos e previews
+├── actions/                # Scripts para automação e tarefas de backend
+│   ├── authorize_gdrive.py # Script único para gerar credenciais do Google Drive
+│   ├── resolve_suggestion.py # Script para aprovar sugestões enviadas
+│   └── sync_proofs_to_drive.py # Script agendado para sincronizar comprovantes
 ├── pages/
 │   └── 1_About.py          # Código da página "Sobre"
 ├── src/
-│   ├── __init__.py
 │   ├── calculations.py     # Lógica dos cálculos matemáticos do IRA
+│   ├── config.py       # Configurações comuns entre as páginas
 │   ├── components.py       # Componentes de UI reutilizáveis (ex: header)
 │   ├── database.py         # Funções de comunicação com o banco de dados
 │   └── pdf_parser.py       # Lógica para extrair dados do PDF
-├── .gitignore
+├── Dockerfile              # Instruções para construir a imagem Docker da aplicação
 ├── app.py                  # Ponto de entrada e UI da página principal
-├── main.py                 # Código simples que roda pelo terminal para mostrar o IRA
+├── main.py                 # Código simples que roda pelo terminal para calcular o IRA
 └── requirements.txt        # Dependências do projeto
 ```
 

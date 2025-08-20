@@ -92,27 +92,6 @@ def render_header():
             show_form()
 
 
-def apply_global_styles():
-    st.markdown(
-        """
-        <style>
-        [data-testid="stSidebar"] {
-            display: none
-        }
-
-        [data-testid="stExpandSidebarButton"] {
-            display: none
-        }
-
-        [data-testid="collapsedControl"] {
-            display: none
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
 @st.dialog("Simular IRA", width="large")
 def show_ira_simulator_dialog(
     current_disciplines: List[Dict], course_avg: float, course_dev: float
