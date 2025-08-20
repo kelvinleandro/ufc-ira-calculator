@@ -22,9 +22,13 @@ Uma aplicação web interativa construída com Streamlit para analisar históric
 
   - **Análises Detalhadas**: Gráficos de distribuição de notas e da carga horária cursada por semestre.
 
-  - **Página Informativa**: Uma página dedicada a explicar as regras e fórmulas por trás do cálculo do IRA.
+  - **Acompanhamento de Pendências**: Uma tabela que extrai e exibe as disciplinas obrigatórias que ainda faltam para a conclusão do curso.
 
-  - **Contribuição da Comunidade**: Um formulário para que os usuários possam sugerir a adição de novos cursos à base de dados da aplicação.
+- **Simulador de IRA Futuro**: Uma ferramenta para adicionar disciplinas futuras, o período em que pretende cursá-las e as notas esperadas, permitindo ao aluno projetar o impacto no seu IRA.
+
+- **Página Informativa**: Uma página dedicada a explicar as regras e fórmulas por trás do cálculo do IRA.
+
+- **Contribuição dos discentes**: Um formulário para que os usuários possam sugerir a adição de novos cursos à base de dados da aplicação.
 
 ## Estrutura do Projeto
 
