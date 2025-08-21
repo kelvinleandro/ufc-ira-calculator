@@ -21,6 +21,13 @@ from src.calculations import (
 from src.components import render_header, render_ira_simulator
 from src.config import page_config
 
+
+@st.cache_data
+def convert_to_csv(disciplines_df: pd.DataFrame):
+    """Convert a DataFrame to a CSV file and return its bytes representation."""
+    return disciplines_df.to_csv(index=False).encode("utf-8")
+
+
 page_config(
     layout="wide",
     page_title="Calculadora de IRA - UFC",
@@ -68,6 +75,38 @@ with col_controls:
                 course_avg, course_dev = course[1], course[2]
                 break
 
+disciplines = []
+if uploaded_file is not None:
+    # Salva o arquivo temporariamente para que o pdfplumber possa lê-lo
+    with open("temp_historico.pdf", "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    pdf_path = Path("temp_historico.pdf")
+    disciplines = extract_disciplines(pdf_path)
+
+with col_controls:
+    df_disciplines = pd.DataFrame(disciplines)
+    df_disciplines.rename(
+        columns={
+            "grade": "Nota",
+            "status": "Status",
+            "credit_hours": "CH",
+            "period": "Periodo",
+            "code": "Codigo",
+        },
+        inplace=True,
+    )
+    csv_data = convert_to_csv(df_disciplines)
+
+    st.download_button(
+        label=":violet[:material/download:] Exportar Dados para CSV",
+        data=csv_data,
+        file_name="dados_historico_academico.csv",
+        mime="text/csv",
+        use_container_width=True,
+        disabled=not disciplines,
+        on_click="ignore",
+    )
+
 with col_results:
     col_header, col_simulator = st.columns([3, 1], gap="large")
     col_header.subheader("Seus Resultados")
@@ -75,13 +114,8 @@ with col_results:
     if uploaded_file is None:
         st.info("Aguardando o upload do histórico para exibir a análise.")
     else:
-        # Salva o arquivo temporariamente para que o pdfplumber possa lê-lo
-        with open("temp_historico.pdf", "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        pdf_path = Path("temp_historico.pdf")
-
         with st.spinner("Analisando o histórico..."):
-            disciplines = extract_disciplines(pdf_path)
+            # disciplines = extract_disciplines(pdf_path)
             credit_summary = extract_credit_hour_summary(pdf_path)
             pending_courses = extract_pending_courses(pdf_path)
 
