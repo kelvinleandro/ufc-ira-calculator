@@ -49,9 +49,11 @@ def extract_disciplines(pdf_path: Path) -> List[Dict]:
             start_pos = match.start()
             end_pos = matches[i + 1].start() if i + 1 < len(matches) else len(full_text)
             course_block = full_text[start_pos:end_pos]
+            # print(course_block + "\n")
 
             # Get the symbol (if any) to decide whether to ignore the block
             symbol = match.group(1).strip()
+            course_code = match.group(2).strip()
 
             # Ignore Mandatory Activities (@) and Optional Activities (§)
             if symbol in ["@", "§"]:
@@ -89,6 +91,7 @@ def extract_disciplines(pdf_path: Path) -> List[Dict]:
                     disciplines.append(
                         {
                             "period": current_period,
+                            "code": course_code,
                             "status": status,
                             "grade": float(grade_match.group(1)),
                             "credit_hours": float(hours_match.group(1)),
