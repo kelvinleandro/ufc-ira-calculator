@@ -38,67 +38,76 @@ def extract_disciplines(pdf_path: Path) -> List[Dict]:
         }
         sorted_period_starts = sorted(period_locations.keys())
 
-        # 3. Find all disciplines and their symbols
-        # Group 1: Optional symbol (@, #, e, etc.), Group 2: Discipline Code
-        discipline_regex = re.compile(r"([*e&#@§]?)\s*([A-Z]{2,3}\d{4,})")
-        matches = list(discipline_regex.finditer(full_text))
+        # 3. Find all disciplines
+        # data_line_regex = re.compile(
+        #     r"([*e&#@§]?)\s*([A-Z]{2,3}\d{4,})\s+.*?(\d+\.00)\s+.*?\s+(\d{1,2}(?:\.\d{1,2})?)\s+(APROVADO MÉDIA|APROVADO|REPROVADO|TRANCADO|SUPRIMIDO|APROVT INTERNO)"
+        # )
+        data_line_regex = re.compile(
+            r"""
+            ([*e&#@§]?)                                 # Group 1: Optional symbol (e.g., @, \#)
+            \s*                                         # Zero or more whitespace characters
+            ([A-Z]{2,3}\d{4,})                          # Group 2: Course code (e.g., CB0664)
+            \s+.*?                                      # Generic separator (skips text like class, frequency)
+            (\d+\.00)                                   # Group 3: Credit Hours (e.g., 128.00)
+            \s+.*?                                      # Another generic separator
+            (\d{1,2}(?:\.\d{1,2})?)                     # Group 4: Grade (e.g., 8.7 or 10)
+            \s+                                         # One or more whitespace characters
+            (                                           # Group 5: Course status
+                APROVADO\ MÉDIA|APROVADO|REPROVADO|
+                TRANCADO|SUPRIMIDO|APROVT\ INTERNO
+            )
+            """,
+            re.VERBOSE,
+        )
+        matches = list(data_line_regex.finditer(full_text))
+
+        last_match_end = 0
 
         # 4. Iterate over the found disciplines to process each block
-        for i, match in enumerate(matches):
-            # Define the text block for the current discipline
-            start_pos = match.start()
-            end_pos = matches[i + 1].start() if i + 1 < len(matches) else len(full_text)
-            course_block = full_text[start_pos:end_pos]
-            # print(course_block + "\n")
+        for _, match in enumerate(matches):
+            symbol, course_code, hours, grade, status = match.groups()
+            symbol = symbol.strip()
 
-            # Get the symbol (if any) to decide whether to ignore the block
-            symbol = match.group(1).strip()
-            course_code = match.group(2).strip()
-
-            # Ignore Mandatory Activities (@) and Optional Activities (§)
-            if symbol in ["@", "§"]:
+            if symbol in ["@", "§"] or status in ["APROVT INTERNO", "SUPRIMIDO"]:
                 continue
 
-            # Find the correct period for the current discipline
+            current_match_start = match.start()
+            search_region = full_text[last_match_end:current_match_start]
+
+            name_candidates = re.findall(
+                r"\n([A-ZÁÀÂÃÉÊÍÎÓÔÕÚÇ\s]{3,})\n", search_region
+            )
+            course_name = (
+                name_candidates[-1].strip()
+                if name_candidates
+                else "NOME NÃO ENCONTRADO"
+            )
+
+            last_match_end = match.end()
+
             current_period = None
             for period_start_index in reversed(sorted_period_starts):
-                if period_start_index < start_pos:
+                if period_start_index < current_match_start:
                     current_period = period_locations[period_start_index]
                     break
 
             if not current_period:
                 continue
 
-            # Extract data from the discipline block
-            status_match = re.search(
-                r"(APROVADO MÉDIA|APROVADO|REPROVADO|TRANCADO|SUPRIMIDO|APROVT INTERNO)",
-                course_block,
-            )
-            if not status_match:
+            try:
+                disciplines.append(
+                    {
+                        "period": current_period,
+                        "code": course_code,
+                        "name": course_name,
+                        "status": status,
+                        "grade": float(grade),
+                        "credit_hours": float(hours),
+                        "symbol": symbol,
+                    }
+                )
+            except (ValueError, IndexError):
                 continue
-
-            status = status_match.group(0)
-            if status in ["APROVT INTERNO", "SUPRIMIDO"]:
-                continue
-
-            grade_match = re.search(
-                r"(\d{1,2}(?:\.\d{1,2})?)\s+" + re.escape(status), course_block
-            )
-            hours_match = re.search(r"(\d+\.00)", course_block)
-
-            if grade_match and hours_match:
-                try:
-                    disciplines.append(
-                        {
-                            "period": current_period,
-                            "code": course_code,
-                            "status": status,
-                            "grade": float(grade_match.group(1)),
-                            "credit_hours": float(hours_match.group(1)),
-                        }
-                    )
-                except (ValueError, IndexError):
-                    continue
 
     return disciplines
 

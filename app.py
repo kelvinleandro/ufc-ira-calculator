@@ -87,11 +87,13 @@ with col_controls:
     df_disciplines = pd.DataFrame(disciplines)
     df_disciplines.rename(
         columns={
-            "grade": "Nota",
-            "status": "Status",
-            "credit_hours": "CH",
             "period": "Periodo",
             "code": "Codigo",
+            "name": "Disciplina",
+            "status": "Status",
+            "grade": "Nota",
+            "credit_hours": "CH",
+            "symbol": "Simbolo",
         },
         inplace=True,
     )
